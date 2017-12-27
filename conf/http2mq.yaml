@@ -1,0 +1,15 @@
+web:
+  access_log: /var/log/http2mq/access.log
+  error_log: /var/log/http2mq/error.log
+  port: 8080
+
+
+kafka:
+  brokers: 192.168.1.182:9092
+  topic: http2mq
+
+
+user:
+    - user1:pwd1
+    - user2:pwd2
+    - user3:pwd3
