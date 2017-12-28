@@ -1,4 +1,5 @@
-# send http body to kafka
+# http2mq 
+send http body to kafka
 
 
 # install
