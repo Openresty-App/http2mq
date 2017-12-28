@@ -2,6 +2,7 @@ package app
 
 import (
 	"io/ioutil"
+	"log"
 
 	"github.com/Shopify/sarama"
 
@@ -11,7 +12,6 @@ import (
 
 	"time"
 
-	"github.com/Sirupsen/logrus"
 	"gopkg.in/yaml.v2"
 )
 
@@ -76,7 +76,7 @@ func newSyncProducer(brokers []string) sarama.SyncProducer {
 
 	producer, err := sarama.NewSyncProducer(brokers, config)
 	if err != nil {
-		logrus.Warnf("init AsyncProducer err:%s", err.Error())
+		log.Printf("init AsyncProducer err:%s", err.Error())
 	}
 
 	return producer
@@ -96,7 +96,7 @@ func newAsyncProducer(brokers []string) sarama.AsyncProducer {
 
 	producer, err := sarama.NewAsyncProducer(brokers, config)
 	if err != nil {
-		logrus.Warnf("init AsyncProducer err:%s", err.Error())
+		log.Printf("init AsyncProducer err:%s", err.Error())
 	}
 
 	return producer

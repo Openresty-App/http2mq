@@ -7,11 +7,11 @@ import (
 
 	"fmt"
 
-	"github.com/xuyz/http2mq/app"
+	"github.com/Openresty-App/http2mq/app"
 )
 
 func main() {
-	conf := flag.String("conf,c", "conf/http2mq.yaml", "http2mq configuration file")
+	conf := flag.String("conf", "http2mq.yaml", "http2mq configuration file")
 	flag.Parse()
 
 	a, err := app.NewApp(*conf)

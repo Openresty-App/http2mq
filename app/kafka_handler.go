@@ -1,12 +1,12 @@
 package app
 
 import (
+	"log"
 	"net/http"
 
 	"io/ioutil"
 
 	"github.com/Shopify/sarama"
-	"github.com/Sirupsen/logrus"
 )
 
 type Kafka struct {
@@ -26,7 +26,7 @@ func (k *Kafka) ServeHTTP(res http.ResponseWriter, req *http.Request) {
 	b, err := ioutil.ReadAll(req.Body)
 	if err != nil {
 		res.WriteHeader(http.StatusInternalServerError)
-		logrus.Warnf("%s: res:%s", req.RequestURI, err.Error())
+		log.Printf("%s: res:%s", req.RequestURI, err.Error())
 		res.Write([]byte(""))
 		return
 	}

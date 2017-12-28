@@ -1,6 +1,4 @@
 web:
-  access_log: /var/log/http2mq/access.log
-  error_log: /var/log/http2mq/error.log
   port: 8080
 
 
