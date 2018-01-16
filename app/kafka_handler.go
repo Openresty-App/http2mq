@@ -3,26 +3,44 @@ package app
 import (
 	"log"
 	"net/http"
+	"time"
 
 	"io/ioutil"
 
 	"github.com/Shopify/sarama"
+	"github.com/gorilla/mux"
+	"github.com/wvanbergen/kafka/consumergroup"
 )
 
 type Kafka struct {
+	Topic string
 }
 
-func (k *Kafka) ServeHTTP(res http.ResponseWriter, req *http.Request) {
-	if req.Method != http.MethodPost {
-		res.WriteHeader(http.StatusMethodNotAllowed)
+func (k *Kafka) DoGet(res http.ResponseWriter, req *http.Request) {
+	conf := consumergroup.NewConfig()
+	conf.Zookeeper.Chroot = Conf.ZkRoot
+	conf.Offsets.Initial = sarama.OffsetNewest
+	conf.Offsets.ResetOffsets = true
+	conf.Offsets.ProcessingTimeout = 100 * time.Millisecond
+
+	consumer, err := consumergroup.JoinConsumerGroup(
+		Conf.ConsumerUser,
+		[]string{k.Topic},
+		Conf.ZKServers,
+		conf,
+	)
+	if err != nil {
+		res.WriteHeader(http.StatusInternalServerError)
+		res.Write([]byte(""))
 		return
 	}
+	defer consumer.Close()
 
-	if !CheckAuth(req) {
-		res.WriteHeader(http.StatusUnauthorized)
-		return
-	}
+	msg := <-consumer.Messages()
+	res.Write(msg.Value)
+}
 
+func (k *Kafka) DoPost(res http.ResponseWriter, req *http.Request) {
 	b, err := ioutil.ReadAll(req.Body)
 	if err != nil {
 		res.WriteHeader(http.StatusInternalServerError)
@@ -32,7 +50,7 @@ func (k *Kafka) ServeHTTP(res http.ResponseWriter, req *http.Request) {
 	}
 
 	Conf.SyncProducer.SendMessage(&sarama.ProducerMessage{
-		Topic: "http2mq",
+		Topic: k.Topic,
 		Value: sarama.ByteEncoder(b),
 	})
 	//
@@ -42,6 +60,31 @@ func (k *Kafka) ServeHTTP(res http.ResponseWriter, req *http.Request) {
 	//}
 
 	res.Write([]byte(""))
+}
+
+func (k *Kafka) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	k.Topic = vars["topic"]
+
+	if !CheckTopic(k.Topic) {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte("{\"messge\":\"无效的topic\"}"))
+	}
+
+	if !CheckAuth(r) {
+		w.WriteHeader(http.StatusUnauthorized)
+		return
+	}
+
+	switch r.Method {
+	case http.MethodPost, http.MethodPut:
+		k.DoPost(w, r)
+	case http.MethodGet:
+		k.DoGet(w, r)
+	default:
+		w.WriteHeader(http.StatusMethodNotAllowed)
+		w.Write([]byte(""))
+	}
 }
 
 func NewKafka() http.Handler {

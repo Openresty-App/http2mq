@@ -36,7 +36,7 @@ func NewApp(f string) (*App, error) {
 	}
 
 	r := mux.NewRouter()
-	r.Handle("/", NewKafka())
+	r.Handle("/kafka/{topic}", NewKafka())
 
 	n := negroni.New()
 	n.Use(NewLogger())
