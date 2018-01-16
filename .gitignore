@@ -3,6 +3,7 @@
 *.dll
 *.so
 *.dylib
+http2mq
 
 # Test binary, build with `go test -c`
 *.test
